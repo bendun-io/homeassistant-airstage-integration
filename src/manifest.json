@@ -1,0 +1,11 @@
+{
+    "domain": "airstage",
+    "name": "Fujitsu Airstage Integration (unofficial)",
+    "codeowners": ["@bendun-io"],
+    "dependencies": [],
+    "documentation": "https://github.com/bendun-io/homeassistant-airstage-integration",
+    "iot_class": "local_polling",
+    "issue_tracker": "https://github.com/bendun-io/homeassistant-airstage-integration/issues",
+    "requirements": [],
+    "version": "0.1.0"
+}
