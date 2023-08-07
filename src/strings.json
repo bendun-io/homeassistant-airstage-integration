@@ -1,0 +1,32 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Airstage",
+        "description": "Connect using your Airstage account.",
+        "data": {
+          "username": "[%key:common::config_flow::data::email%]",
+          "password": "[%key:common::config_flow::data::password%]"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "Airstage integration already configured for this email. Access token has been refreshed."
+    }
+  },
+  "issues": {
+    "deprecated_yaml_import_issue_invalid_auth": {
+      "title": "The Airstage YAML configuration import failed",
+      "description": "Configuring Airstage using YAML is being removed but there was an authentication error importing your YAML configuration.\n\nCorrect the YAML configuration and restart Home Assistant to try again or remove the Airstage YAML configuration from your configuration.yaml file and continue to [set up the integration](/config/integrations/dashboard/add?domain=airstage) manually."
+    },
+    "deprecated_yaml_import_issue_cannot_connect": {
+      "title": "The Airstage YAML configuration import failed",
+      "description": "Configuring Airstage using YAML is being removed but there was an connection error importing your YAML configuration.\n\nEnsure connection to Airstage works and restart Home Assistant to try again or remove the Airstage YAML configuration from your configuration.yaml file and continue to [set up the integration](/config/integrations/dashboard/add?domain=airstage) manually."
+    }
+  }
+}
