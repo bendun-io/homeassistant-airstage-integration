@@ -7,7 +7,7 @@ _LOGGER = logging.getLogger(__name__)
 #  o = i.data.firebaseDeviceToken, a = i.data.macAddress, 
 # header authority: "https://bke.euro.airstagelight.com/apiv1" -> "bke.euro.airstagelight.com"
 
-def login(baseUrl, email, password, country, language, deviceToken, ssid):
+async def login(baseUrl, email, password, country, language, deviceToken, ssid):
     authority = baseUrl.split("//")[1].split("/")[0] 
     theHeader = {
         "authority": authority,
@@ -39,7 +39,7 @@ def login(baseUrl, email, password, country, language, deviceToken, ssid):
 
     return req.json()
 
-def getDevices(baseUrl, authData):
+async def getDevices(baseUrl, authData):
     authority = baseUrl.split("//")[1].split("/")[0]
 
     theHeader = {
@@ -62,7 +62,7 @@ def getDevices(baseUrl, authData):
     
     return req.json()
 
-def stateChange(baseUrl, authData, deviceId, parameterChange):
+async def stateChange(baseUrl, authData, deviceId, parameterChange):
     authority = baseUrl.split("//")[1].split("/")[0]
     url = f'/devices/{deviceId}/set_parameters_request'
 
@@ -98,11 +98,11 @@ OPMODE_DRY = "2"
 OPMODE_FAN = "3"
 OPMODE_HEAT = "4"
 
-def changeOpMode(baseUrl, authData, deviceId, targetOpMode):  
+async def changeOpMode(baseUrl, authData, deviceId, targetOpMode):  
     return stateChange(baseUrl, authData, deviceId, [{"name":"iu_op_mode", "desiredValue": targetOpMode}] )
 
-def turn_on(baseUrl, authData, deviceId):
+async def turn_on(baseUrl, authData, deviceId):
     return stateChange(baseUrl, authData, deviceId, [{"name": "iu_onoff", "desiredValue": "1"}])
 
-def turn_off(baseUrl, authData, deviceId):
+async def turn_off(baseUrl, authData, deviceId):
     return stateChange(baseUrl, authData, deviceId, [{"name": "iu_onoff", "desiredValue": "0"}])

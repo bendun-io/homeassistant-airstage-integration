@@ -4,14 +4,8 @@ This is an integration of the Fujitsu AC Cloud AIRSTAGE into home assistant.
 
 ### Installation
 
-Copy this folder to `<config_dir>/custom_components/airstage/`.
+Copy the folder `src` to the folder  `<config_dir>/custom_components/airstage/`.
 
-Add the following entry in your `configuration.yaml`:
-
-```yaml
-light:
-  - platform: example_light
-    host: HOST_HERE
-    username: USERNAME_HERE
-    password: PASSWORD_HERE_OR_secrets.yaml
-```
+The easiest method to then setup your AC is through the config flow.
+Go to `Settings` then `Devices and Integrations` click on `+ Add Integration`.
+Select `Fujitsu Airstage Integration (unofficial)` and fill the form.
