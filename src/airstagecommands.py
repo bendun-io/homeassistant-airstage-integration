@@ -99,10 +99,10 @@ OPMODE_FAN = "3"
 OPMODE_HEAT = "4"
 
 async def changeOpMode(baseUrl, authData, deviceId, targetOpMode):  
-    return stateChange(baseUrl, authData, deviceId, [{"name":"iu_op_mode", "desiredValue": targetOpMode}] )
+    return await stateChange(baseUrl, authData, deviceId, [{"name":"iu_op_mode", "desiredValue": targetOpMode}] )
 
 async def turn_on(baseUrl, authData, deviceId):
-    return stateChange(baseUrl, authData, deviceId, [{"name": "iu_onoff", "desiredValue": "1"}])
+    return await stateChange(baseUrl, authData, deviceId, [{"name": "iu_onoff", "desiredValue": "1"}])
 
 async def turn_off(baseUrl, authData, deviceId):
-    return stateChange(baseUrl, authData, deviceId, [{"name": "iu_onoff", "desiredValue": "0"}])
+    return await stateChange(baseUrl, authData, deviceId, [{"name": "iu_onoff", "desiredValue": "0"}])

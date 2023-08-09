@@ -8,6 +8,7 @@ import time
 from aiohttp import ClientError, ClientResponseError
 from async_timeout import timeout
 import voluptuous as vol
+from const import DUMMY_DEVICE_TOKEN
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_TOKEN, CONF_USERNAME
@@ -23,6 +24,7 @@ from homeassistant.helpers.selector import (
 )
 
 import airstagecommands
+import uuid
 from .const import DOMAIN, CONF_BASEURL, CONF_BASEURL_SELECTOR
 import logging
 _LOGGER = logging.getLogger(__name__)
@@ -57,7 +59,7 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 time.sleep(15)
                 if (acquired_token := token) is None:
                     acquired_token = await airstagecommands.login(
-                        baseurl, username, password, "Germany", "de", "X", "X" # TODO parameters!!!
+                        baseurl, username, password, "Germany", "de", DUMMY_DEVICE_TOKEN, str(uuid.uuid4()).replace("-","") # TODO parameters, Germany and de
                     )
                 await airstagecommands.getDevices(baseurl, acquired_token)
         except ClientResponseError as err:
