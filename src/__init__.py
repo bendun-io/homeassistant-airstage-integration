@@ -28,7 +28,7 @@ _LOGGER = logging.getLogger(__name__)
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
-PLATFORMS = [Platform.CLIMATE, Platform.SENSOR, Platform.WATER_HEATER]
+PLATFORMS = [Platform.CLIMATE] # , Platform.SENSOR, Platform.WATER_HEATER
 
 CONF_LANGUAGE = "language"
 CONFIG_SCHEMA = vol.Schema(
@@ -47,26 +47,27 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Establish connection with Airstage."""
-    if DOMAIN not in config:
-        return True
+# async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+#     """Establish connection with Airstage."""
+#     if DOMAIN not in config:
+#         return True
 
-    username = config[DOMAIN][CONF_USERNAME]
-    token = config[DOMAIN][CONF_TOKEN]
-    hass.async_create_task(
-        hass.config_entries.flow.async_init(
-            DOMAIN,
-            context={"source": SOURCE_IMPORT},
-            data={CONF_USERNAME: username, CONF_TOKEN: token},
-        )
-    )
-    return True
+#     username = config[DOMAIN][CONF_USERNAME]
+#     token = config[DOMAIN][CONF_TOKEN]
+#     hass.async_create_task(
+#         hass.config_entries.flow.async_init(
+#             DOMAIN,
+#             context={"source": SOURCE_IMPORT},
+#             data={CONF_USERNAME: username, CONF_TOKEN: token},
+#         )
+#     )
+#     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Establish connection with Airstage."""
     conf = entry.data
+    _LOGGER.error(conf) # TODO remove
     airstage_devices = await airstage_devices_setup(hass, conf[CONF_TOKEN])
     hass.data.setdefault(DOMAIN, {}).update({entry.entry_id: airstage_devices})
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -146,16 +147,15 @@ class AirstageDevice:
     #     """Return energy consumed during the current day in kWh."""
     #     return self.device.daily_energy_consumed
 
-import time
-
 async def airstage_devices_setup(
     hass: HomeAssistant, token: str
 ) -> dict[str, list[AirstageDevice]]:
     """Query connected devices from MELCloud."""
     session = async_get_clientsession(hass)
+    
     try:
         async with timeout(10):
-            time.sleep(15)
+            pass
             # TODO all_devices = await get_devices(
             #     token,
             #     session,

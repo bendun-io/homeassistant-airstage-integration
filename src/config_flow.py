@@ -8,7 +8,6 @@ import time
 from aiohttp import ClientError, ClientResponseError
 from async_timeout import timeout
 import voluptuous as vol
-from const import DUMMY_DEVICE_TOKEN
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_TOKEN, CONF_USERNAME
@@ -23,9 +22,10 @@ from homeassistant.helpers.selector import (
     selector
 )
 
-import airstagecommands
 import uuid
-from .const import DOMAIN, CONF_BASEURL, CONF_BASEURL_SELECTOR
+from .const import DOMAIN, CONF_BASEURL, CONF_BASEURL_SELECTOR, DUMMY_DEVICE_TOKEN
+from . import airstagecommands
+
 import logging
 _LOGGER = logging.getLogger(__name__)
 
@@ -56,12 +56,12 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Create client."""
         try:
             async with timeout(10):
-                time.sleep(15)
                 if (acquired_token := token) is None:
                     acquired_token = await airstagecommands.login(
-                        baseurl, username, password, "Germany", "de", DUMMY_DEVICE_TOKEN, str(uuid.uuid4()).replace("-","") # TODO parameters, Germany and de
+                        baseurl, username, password, "Germany", "de", DUMMY_DEVICE_TOKEN, str(uuid.uuid4()).replace("-",""), # TODO parameters, Germany and de
+                        requestModule=async_get_clientsession(self.hass)
                     )
-                await airstagecommands.getDevices(baseurl, acquired_token)
+                # airstagecommands.getDevices(baseurl, acquired_token)
         except ClientResponseError as err:
             if err.status in (HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN):
                 async_create_issue(
@@ -78,8 +78,7 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             )
             return self.async_abort(reason="cannot_connect")
 
-        # TODO replace None by acquired_token
-        return await self._create_entry(username, None)
+        return await self._create_entry(username, acquired_token)
 
     async def async_step_user(self, user_input=None):
         """User initiated config flow."""

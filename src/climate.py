@@ -3,10 +3,12 @@ from __future__ import annotations
 
 # from datetime import timedelta
 from typing import Any
+import logging
+_LOGGER = logging.getLogger(__name__)
 
 from pymelcloud import DEVICE_TYPE_ATA, DEVICE_TYPE_ATW, AtaDevice, AtwDevice # TODO create this ata field in the Airstage device
 import voluptuous as vol
-import airstagedevice.const as ata
+from .airstagedevice import const as ata
 
 from homeassistant.components.climate import (
     ATTR_HVAC_MODE,
@@ -31,11 +33,11 @@ from .const import (
 
 
 ATA_HVAC_MODE_LOOKUP = {
-    ata.OPERATION_MODE_HEAT: HVACMode.HEAT,
-    ata.OPERATION_MODE_DRY: HVACMode.DRY,
-    ata.OPERATION_MODE_COOL: HVACMode.COOL,
-    ata.OPERATION_MODE_FAN_ONLY: HVACMode.FAN_ONLY,
-    ata.OPERATION_MODE_HEAT_COOL: HVACMode.HEAT_COOL,
+    ata["OPERATION_MODE_HEAT"]: HVACMode.HEAT,
+    ata["OPERATION_MODE_DRY"]: HVACMode.DRY,
+    ata["OPERATION_MODE_COOL"]: HVACMode.COOL,
+    ata["OPERATION_MODE_FAN_ONLY"]: HVACMode.FAN_ONLY,
+    ata["OPERATION_MODE_HEAT_COOL"]: HVACMode.HEAT_COOL,
 }
 ATA_HVAC_MODE_REVERSE_LOOKUP = {v: k for k, v in ATA_HVAC_MODE_LOOKUP.items()}
 
@@ -45,15 +47,17 @@ async def async_setup_entry(
 ) -> None:
     """Set up Airstage device climate based on config_entry."""
     airstage_devices = hass.data[DOMAIN][entry.entry_id] # TODO check this one
-    entities: list[AirstageCloudClimate] = [
-        AirstageCloudClimate(airstage_device)
-        for airstage_device in airstage_devices
-    ]
+
+    _LOGGER.error(airstage_devices)
+    # entities: list[AirstageCloudClimate] = [
+    #     AirstageCloudClimate(airstage_device)
+    #     for airstage_device in airstage_devices
+    # ]
     
-    async_add_entities(
-        entities,
-        True,
-    )
+    # async_add_entities(
+    #     entities,
+    #     True,
+    # )
 
 
 class AirstageCloudClimate(ClimateEntity):

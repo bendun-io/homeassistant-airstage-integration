@@ -5,13 +5,13 @@ _LOGGER = logging.getLogger(__name__)
 from .airstagecommands import login, stateChange
 from .airstagecommands import OPMODE_AUTO, OPMODE_COOL, OPMODE_DRY, OPMODE_FAN, OPMODE_HEAT
 
-const = {}
-const.OPERATION_MODE_HEAT = OPMODE_HEAT
-const.OPERATION_MODE_DRY = OPMODE_DRY
-const.OPERATION_MODE_COOL = OPMODE_COOL
-const.OPERATION_MODE_FAN_ONLY = OPMODE_FAN
-const.OPERATION_MODE_HEAT_COOL = OPMODE_AUTO
-
+const = {
+    "OPERATION_MODE_HEAT": OPMODE_HEAT,
+    "OPERATION_MODE_DRY": OPMODE_DRY,
+    "OPERATION_MODE_COOL": OPMODE_COOL,
+    "OPERATION_MODE_FAN_ONLY": OPMODE_FAN,
+    "OPERATION_MODE_HEAT_COOL": OPMODE_AUTO
+}
 
 # TODO Ensure that the constructor gets the following data!
 # self.device_data.baseUrl, self.device_data.authData, self.device_data.deviceid
