@@ -8,44 +8,29 @@ from typing import Any
 
 from aiohttp import ClientConnectionError
 from async_timeout import timeout
-# from pymelcloud import Device, get_devices
+# from pymelcloud import Device
 import voluptuous as vol
 
-from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
-from homeassistant.const import CONF_TOKEN, CONF_USERNAME, Platform
+from homeassistant.config_entries import ConfigEntry # SOURCE_IMPORT,
+from homeassistant.const import CONF_TOKEN, Platform # CONF_USERNAME, 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.typing import ConfigType
+# from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import Throttle
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_BASEURL
+from .airstagecommands import getDevices
+from .airstagedevice import AirstageAC
 
 _LOGGER = logging.getLogger(__name__)
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
-PLATFORMS = [Platform.CLIMATE] # , Platform.SENSOR, Platform.WATER_HEATER
-
-CONF_LANGUAGE = "language"
-CONFIG_SCHEMA = vol.Schema(
-    vol.All(
-        cv.deprecated(DOMAIN),
-        {
-            DOMAIN: vol.Schema(
-                {
-                    vol.Required(CONF_USERNAME): cv.string,
-                    vol.Required(CONF_TOKEN): cv.string,
-                }
-            )
-        },
-    ),
-    extra=vol.ALLOW_EXTRA,
-)
-
+PLATFORMS = [Platform.CLIMATE]  # , Platform.SENSOR, Platform.WATER_HEATER
 
 # async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 #     """Establish connection with Airstage."""
@@ -67,8 +52,8 @@ CONFIG_SCHEMA = vol.Schema(
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Establish connection with Airstage."""
     conf = entry.data
-    _LOGGER.error(conf) # TODO remove
-    airstage_devices = await airstage_devices_setup(hass, conf[CONF_TOKEN])
+
+    airstage_devices = await airstage_devices_setup(hass, conf[CONF_BASEURL], conf[CONF_TOKEN])
     hass.data.setdefault(DOMAIN, {}).update({entry.entry_id: airstage_devices})
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
@@ -88,7 +73,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 class AirstageDevice:
     """Airstage Device instance. TODO CHECK METHODS HERE!"""
 
-    def __init__(self, device: Device) -> None:
+    def __init__(self, device: AirstageAC) -> None:
         """Construct a device wrapper."""
         self.device = device
         self.name = device.name
@@ -123,10 +108,10 @@ class AirstageDevice:
         """Return device ID."""
         return self.device.device_id
 
-    @property
-    def building_id(self):
-        """Return building ID of the device."""
-        return self.device.building_id
+    # @property # TODO check if this one is needed
+    # def building_id(self):
+    #     """Return building ID of the device."""
+    #     return self.device.building_id
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -147,25 +132,24 @@ class AirstageDevice:
     #     """Return energy consumed during the current day in kWh."""
     #     return self.device.daily_energy_consumed
 
+
 async def airstage_devices_setup(
-    hass: HomeAssistant, token: str
-) -> dict[str, list[AirstageDevice]]:
+    hass: HomeAssistant, baseurl: str, token
+) -> list[AirstageDevice]:
     """Query connected devices from MELCloud."""
-    session = async_get_clientsession(hass)
-    
+    # session = async_get_clientsession(hass) # TODO check this line
+
     try:
         async with timeout(10):
-            pass
-            # TODO all_devices = await get_devices(
-            #     token,
-            #     session,
-            #     conf_update_interval=timedelta(minutes=5),
-            #     device_set_debounce=timedelta(seconds=1),
-            # )
+            all_devices = await getDevices(baseurl, token,
+                                           requestModule=async_get_clientsession(
+                                               hass)
+                                           # conf_update_interval=timedelta(minutes=5),
+                                           # device_set_debounce=timedelta(seconds=1),
+                                           )
     except (asyncio.TimeoutError, ClientConnectionError) as ex:
         raise ConfigEntryNotReady() from ex
 
-    wrapped_devices: dict[str, list[AirstageDevice]] = {}
-    # for device_type, devices in all_devices.items(): # TODO uncomment when all_devices is done
-    #     wrapped_devices[device_type] = [AirstageDevice(device) for device in devices]
-    return wrapped_devices
+    all_devices = all_devices["devices"]
+
+    return [AirstageDevice(AirstageAC(device, baseurl, token)) for device in all_devices]

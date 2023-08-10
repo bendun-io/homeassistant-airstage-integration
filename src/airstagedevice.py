@@ -16,15 +16,18 @@ const = {
 # TODO Ensure that the constructor gets the following data!
 # self.device_data.baseUrl, self.device_data.authData, self.device_data.deviceid
 
-class AirstageDevice():
+class AirstageAC():
 
-    def __init__(self, deviceinfo) -> None:
+    def __init__(self, deviceinfo, baseurl, authData) -> None:
+        self.baseurl  = baseurl
+        self.authData = authData
+
         self.device_data = deviceinfo
-        self.name = deviceinfo.name         # this one may not be needed as it is configurable TODO CHECK
-        self.serial = deviceinfo.serial
-        self.mac = deviceinfo.mac
-        self.device_info = f'The Fujitsu AC with serial number {deviceinfo.serial}'
-        
+        self.name = deviceinfo["deviceName"]    # this one may not be needed as it is configurable TODO CHECK
+        self.serial = deviceinfo["deviceId"]
+        self.mac = None # deviceinfo.mac        # TODO see if it is needed
+        self.device_info = f'The Fujitsu AC with serial number {self.serial}'
+
         self.operation_modes = [OPMODE_AUTO, OPMODE_COOL, OPMODE_DRY, OPMODE_FAN, OPMODE_HEAT]
         self.operation_mode = None
         self.power = False
@@ -39,7 +42,7 @@ class AirstageDevice():
         self.temperature_increment = 0.5
         
 
-    async def async_update(self):
+    async def update(self):
         pass # TODO
 
     async def set(self, set_dict):
@@ -54,7 +57,7 @@ class AirstageDevice():
         if "operation_mode" in set_dict:
             params.append({"name":"iu_op_mode", "desiredValue": set_dict['operation_mode']})
 
-        rslt = stateChange(self.device_data.baseUrl, self.device_data.authData, self.device_data.deviceid, params)
+        rslt = stateChange(self.baseurl, self.authData, self.serial, params)
         
         if rslt == None:
-            raise Exception(f'Cannot set state {set_dict} to device {self.device_data.deviceid}')
+            raise Exception(f'Cannot set state {set_dict} to device {self.serial}')

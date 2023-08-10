@@ -1,4 +1,5 @@
 import requests
+import json
 
 import logging
 _LOGGER = logging.getLogger(__name__)
@@ -47,7 +48,50 @@ async def login(baseUrl, email, password, country, language, deviceToken, ssid, 
 
     return await req.json()
 
-async def getDevices(baseUrl, authData, *, requestModule=requests):
+
+async def refreshToken(baseUrl, authData, *, requestModule=requests):
+    authority = baseUrl.split("//")[1].split("/")[0]
+
+    theHeader = {
+        "authority": authority,
+        "accept": ": application/json, text/plain, */*",
+        'authorization': f'Bearer {authData["accessToken"]}',
+        'user-agent': 'Mozilla/5.0 (Linux; Android 11; Android SDK built for x86 Build/RSR1.210210.001.A1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/83.0.4103.106 Mobile Safari/537.36',
+        'content-type': 'application/json',
+        'x-requested-with': 'com.fujitsu_general.ACL_O_App',
+        'sec-fetch-site': 'cross-site',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-dest': 'empty',
+        'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7'
+    }
+    theData = {"user": {
+                "refreshToken": authData["refreshToken"],
+                }
+            }
+
+    req = await requestModule.post(baseUrl + "/users/me/refresh_token", json=theData, headers=theHeader)
+    
+    stat = _getStatus(req)
+    if stat != 200:
+        _LOGGER.error(f'Token refresh failed: {req.stat}\nReq Header:{theHeader}\nRequest Data: {theData}\nResponse Header: {req.headers}\nContent: {str(req.raw)}')
+        return None
+
+    return await req.json()
+
+
+async def tryRefreshed(baseUrl, authData, *, requestModule=requests, tryFunc=lambda _:None):
+    tokenRefresh = refreshToken(baseUrl, authData, requestModule=requestModule)
+    if refreshToken == None:
+        return None
+    authData["accessToken"] = tokenRefresh["accessToken"]
+    secondAttempt = json.loads(await tryFunc(authData))
+    if secondAttempt==None:
+        return None
+    secondAttempt["newAccessToken"] = authData["accessToken"]
+    return json.dumps(secondAttempt)
+
+
+async def getDevices(baseUrl, authData, *, requestModule=requests, freshToken=False):
     authority = baseUrl.split("//")[1].split("/")[0]
 
     theHeader = {
@@ -66,13 +110,16 @@ async def getDevices(baseUrl, authData, *, requestModule=requests):
 
     status = _getStatus(req)
     if status != 200:
+        if not freshToken:
+            secondTryFunc=lambda ad: getDevices(baseUrl, ad, requestModule=requestModule, freshToken=True)
+            return tryRefreshed(baseUrl, authData, requestModule=requestModule, tryFunc=secondTryFunc)
+        
         _LOGGER.error(f'Device listing failed: {status}\nReq Header:{theHeader}\nResponse Header: {req.headers}\nContent: {str(req.raw)}')
         return None
     
     return await req.json()
 
-
-async def stateChange(baseUrl, authData, deviceId, parameterChange, *, requestModule=requests):
+async def stateChange(baseUrl, authData, deviceId, parameterChange, *, requestModule=requests, freshToken=False):
     authority = baseUrl.split("//")[1].split("/")[0]
     url = f'/devices/{deviceId}/set_parameters_request'
 
@@ -97,7 +144,8 @@ async def stateChange(baseUrl, authData, deviceId, parameterChange, *, requestMo
 
     status = _getStatus(req)
     if status != 200:
-        _LOGGER.error(f'Device listing failed: {status}\nHeader: {req.headers}\nContent: {req.raw}')
+        # TODO implement refresh token mechanism here
+        _LOGGER.error(f'Device status change failed: {status}\nHeader: {req.headers}\nContent: {req.raw}')
         return None
     
     return await req.json()

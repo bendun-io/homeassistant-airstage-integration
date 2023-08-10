@@ -35,14 +35,14 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    async def _create_entry(self, username: str, token: str):
+    async def _create_entry(self, username: str, baseurl:str, token: str):
         """Register new entry."""
         await self.async_set_unique_id(username)
         
         self._abort_if_unique_id_configured({CONF_TOKEN: token})
         
         return self.async_create_entry(
-            title=username, data={CONF_USERNAME: username, CONF_TOKEN: token}
+            title=username, data={CONF_USERNAME: username, CONF_BASEURL: baseurl, CONF_TOKEN: token}
         )
 
     async def _create_client(
@@ -78,7 +78,7 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             )
             return self.async_abort(reason="cannot_connect")
 
-        return await self._create_entry(username, acquired_token)
+        return await self._create_entry(username, baseurl, acquired_token)
 
     async def async_step_user(self, user_input=None):
         """User initiated config flow."""
