@@ -136,16 +136,12 @@ class AirstageDevice:
 async def airstage_devices_setup(
     hass: HomeAssistant, baseurl: str, token
 ) -> list[AirstageDevice]:
-    """Query connected devices from MELCloud."""
-    # session = async_get_clientsession(hass) # TODO check this line
-
+    """Query connected devices from Airstage."""
+    
     try:
         async with timeout(10):
             all_devices = await getDevices(baseurl, token,
-                                           requestModule=async_get_clientsession(
-                                               hass)
-                                           # conf_update_interval=timedelta(minutes=5),
-                                           # device_set_debounce=timedelta(seconds=1),
+                                           requestModule=async_get_clientsession(hass)
                                            )
     except (asyncio.TimeoutError, ClientConnectionError) as ex:
         raise ConfigEntryNotReady() from ex
