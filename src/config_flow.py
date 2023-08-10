@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import asyncio
 from http import HTTPStatus
-import time
 
 from aiohttp import ClientError, ClientResponseError
 from async_timeout import timeout
@@ -11,10 +10,8 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_TOKEN, CONF_USERNAME
-from homeassistant.core import DOMAIN as HOMEASSISTANT_DOMAIN, HomeAssistant
-from homeassistant.data_entry_flow import AbortFlow, FlowResultType
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
+from homeassistant.helpers.issue_registry import async_create_issue
 from homeassistant.helpers.selector import (
     TextSelector,
     TextSelectorConfig,
