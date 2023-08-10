@@ -30,7 +30,7 @@ _LOGGER = logging.getLogger(__name__)
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
-PLATFORMS = [Platform.CLIMATE]  # , Platform.SENSOR, Platform.WATER_HEATER
+PLATFORMS = [Platform.CLIMATE]  # , Platform.SENSOR
 
 # async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 #     """Establish connection with Airstage."""
