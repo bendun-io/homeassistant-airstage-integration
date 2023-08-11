@@ -44,7 +44,6 @@ async def async_setup_entry(
     """Set up Airstage device climate based on config_entry."""
     airstage_devices = hass.data[DOMAIN][entry.entry_id]
 
-    _LOGGER.error(airstage_devices)
     entities: list[AirstageCloudClimate] = [
         AirstageCloudClimate(airstage_device)
         for airstage_device in airstage_devices
