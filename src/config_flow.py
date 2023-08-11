@@ -32,14 +32,14 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    async def _create_entry(self, username: str, baseurl:str, token: str):
+    async def _create_entry(self, username: str, baseurl:str, thePassword:str, token: str):
         """Register new entry."""
         await self.async_set_unique_id(username)
         
         self._abort_if_unique_id_configured({CONF_TOKEN: token})
         
         return self.async_create_entry(
-            title=username, data={CONF_USERNAME: username, CONF_BASEURL: baseurl, CONF_TOKEN: token}
+            title=username, data={CONF_USERNAME: username, CONF_BASEURL: baseurl, CONF_PASSWORD: thePassword, CONF_TOKEN: token}
         )
 
     async def _create_client(
@@ -55,7 +55,7 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             async with timeout(10):
                 if (acquired_token := token) is None:
                     acquired_token = await airstagecommands.login(
-                        baseurl, username, password, "Germany", "de", DUMMY_DEVICE_TOKEN, str(uuid.uuid4()).replace("-",""), # TODO parameters, Germany and de
+                        baseurl, username, password, "Germany", "de", # TODO parameters, Germany and de
                         requestModule=async_get_clientsession(self.hass)
                     )
                 # airstagecommands.getDevices(baseurl, acquired_token)
@@ -75,7 +75,7 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             )
             return self.async_abort(reason="cannot_connect")
 
-        return await self._create_entry(username, baseurl, acquired_token)
+        return await self._create_entry(username, baseurl, password, acquired_token)
 
     async def async_step_user(self, user_input=None):
         """User initiated config flow."""

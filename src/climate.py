@@ -6,8 +6,6 @@ from typing import Any
 import logging
 _LOGGER = logging.getLogger(__name__)
 
-from pymelcloud import DEVICE_TYPE_ATA, DEVICE_TYPE_ATW, AtaDevice, AtwDevice # TODO create this ata field in the Airstage device
-import voluptuous as vol
 from .airstagedevice import const as ata
 
 from homeassistant.components.climate import (
@@ -21,10 +19,8 @@ from homeassistant.components.climate import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import config_validation as cv, entity_platform
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import AirstageCloudClimate
 from .const import (
     DOMAIN,
 )
@@ -46,18 +42,18 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     """Set up Airstage device climate based on config_entry."""
-    airstage_devices = hass.data[DOMAIN][entry.entry_id] # TODO check this one
+    airstage_devices = hass.data[DOMAIN][entry.entry_id]
 
     _LOGGER.error(airstage_devices)
-    # entities: list[AirstageCloudClimate] = [
-    #     AirstageCloudClimate(airstage_device)
-    #     for airstage_device in airstage_devices
-    # ]
+    entities: list[AirstageCloudClimate] = [
+        AirstageCloudClimate(airstage_device)
+        for airstage_device in airstage_devices
+    ]
     
-    # async_add_entities(
-    #     entities,
-    #     True,
-    # )
+    async_add_entities(
+        entities,
+        True,
+    )
 
 
 class AirstageCloudClimate(ClimateEntity):

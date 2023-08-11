@@ -32,7 +32,5 @@ CONF_BASEURL_SELECTOR = {
     }
 }
 
-DUMMY_DEVICE_TOKEN = "xxxxxxxxxxxxxxxxxxxxxx:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-xxxxxxxxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_xxxxxxxxxxxxxxxxxxxxxxxx"
-
 from datetime import timedelta
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
