@@ -68,14 +68,13 @@ class AirstageDevice:
     @property
     def device_info(self) -> DeviceInfo:
         """Return a device description for device registry."""
-        model = None
-        if (unit_infos := self.device.units) is not None:
-            model = ", ".join([x["model"] for x in unit_infos if x["model"]])
+        
         return DeviceInfo(
-            connections={(CONNECTION_NETWORK_MAC, self.device.mac)},
-            identifiers={(DOMAIN, f"{self.device.mac}-{self.device.serial}")},
+            # connections={(CONNECTION_NETWORK_MAC, self.device.mac)},
+            identifiers={(DOMAIN, f"{self.device.serial}")},
             manufacturer="Fujitsu",
-            model=model,
+            model=self.device.model,
+            sw_version=self.device.sw_version,
             name=self.name,
         )
 

@@ -19,8 +19,7 @@ from homeassistant.helpers.selector import (
     selector
 )
 
-import uuid
-from .const import DOMAIN, CONF_BASEURL, CONF_BASEURL_SELECTOR, DUMMY_DEVICE_TOKEN
+from .const import DOMAIN, CONF_BASEURL, CONF_BASEURL_SELECTOR
 from . import airstagecommands
 
 import logging

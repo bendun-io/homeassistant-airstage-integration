@@ -45,9 +45,16 @@ class AirStageAccount():
         if hasattr(response, "newAuthData"):
             self.authData = response['newAuthData']
 
+    def changeDeviceState(self, deviceSerial, parameters, renewedAuth=False):
+        rslt = stateChange(self.baseUrl, self.authData, deviceSerial, parameters, requestModule=self.requestModul)
+        if rslt == None and not renewedAuth:
+            self.renewAuth()
+            return self.changeDeviceState(self, deviceSerial, parameters, renewedAuth=True)
+        return rslt
+
 class AirstageAC():
 
-    def __init__(self, account, deviceinfo) -> None:
+    def __init__(self, account: AirStageAccount, deviceinfo) -> None:
         self.account = account
 
         self.device_data = deviceinfo
@@ -68,7 +75,13 @@ class AirstageAC():
         self.target_temperature_min = None
         self.target_temperature_max = None
         self.temperature_increment = 0.5
-        
+
+        # Used in AirstageDevice method device_info            
+        self.sw_version = self._getParam("iu_main_ver")
+        self.model = deviceinfo["model"] + "-" + self._getParam("iu_model")
+
+    def _getParam(self, paramName):
+        return [param["value"] for param in self.device_data["parameters"] if param["name"]==paramName][0]
 
     async def update(self): # TODO implement
         rslt = None
@@ -89,7 +102,7 @@ class AirstageAC():
         if "operation_mode" in set_dict:
             params.append({"name":"iu_op_mode", "desiredValue": set_dict['operation_mode']})
 
-        rslt = stateChange(self.baseurl, self.authData, self.serial, params)
+        rslt = self.account.changeDeviceState(self.serial, params)
         
         if rslt == None:
             raise Exception(f'Cannot set state {set_dict} to device {self.serial}')
