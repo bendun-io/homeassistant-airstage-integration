@@ -1,4 +1,4 @@
-from .airstagecommands import getDevices, stateChange, login
+from .airstagecommands import getDevices, stateChange, login, getDeviceById
 from .airstagecommands import OPMODE_AUTO, OPMODE_COOL, OPMODE_DRY, OPMODE_FAN, OPMODE_HEAT
 
 import logging
@@ -25,32 +25,41 @@ class AirStageAccount():
         
         if deviceList==None:
             if renewedAuth==False:
-                self.renewAuth()
-                return getDevices(self, renewedAuth=True)
+                await self.renewAuth()
+                return await self.getDevices(renewedAuth=True)
             return None
 
         self.updateAuthDataIfNeeded(deviceList)
 
         return [AirstageAC(self, dev) for dev in deviceList['devices']]
 
-    def renewAuth(self):
-        _LOGGER.debug("Refresh failed, renewing login")
-        _LOGGER.error("TEST")
-        self.authData = login(
+    async def renewAuth(self):
+        _LOGGER.warning("Refresh failed, renewing login")
+        self.authData = await login(
                         self.baseUrl, self.username, self.password, "Germany", "de", # TODO parameters, Germany and de
                         requestModule=self.requestModul
                     )
+        # TODO storage of the new auth data would be nice
 
     def updateAuthDataIfNeeded(self, response):
         if hasattr(response, "newAuthData"):
             self.authData = response['newAuthData']
 
-    def changeDeviceState(self, deviceSerial, parameters, renewedAuth=False):
-        rslt = stateChange(self.baseUrl, self.authData, deviceSerial, parameters, requestModule=self.requestModul)
+    async def changeDeviceState(self, deviceSerial, parameters, renewedAuth=False):
+        rslt = await stateChange(self.baseUrl, self.authData, deviceSerial, parameters, requestModule=self.requestModul)
         if rslt == None and not renewedAuth:
-            self.renewAuth()
-            return self.changeDeviceState(self, deviceSerial, parameters, renewedAuth=True)
+            await self.renewAuth()
+            return await self.changeDeviceState(deviceSerial, parameters, renewedAuth=True)
         return rslt
+
+    async def getDeviceState(self, deviceId, renewedAuth=False):
+        rslt = await getDeviceById(self.baseUrl, self.authData, deviceId, requestModule=self.requestModul)
+        if rslt == None and not renewedAuth:
+            await self.renewAuth()
+            return await self.getDeviceState(self, deviceId, renewedAuth=True)
+        return rslt
+
+import json
 
 class AirstageAC():
 
@@ -79,18 +88,27 @@ class AirstageAC():
         # Used in AirstageDevice method device_info            
         self.sw_version = self._getParam("iu_main_ver")
         self.model = deviceinfo["model"] + "-" + self._getParam("iu_model")
+        self._updateParamFields()
 
     def _getParam(self, paramName):
         return [param["value"] for param in self.device_data["parameters"] if param["name"]==paramName][0]
 
-    async def update(self): # TODO implement
-        rslt = None
+    def _updateParamFields(self):
+        self.operation_mode = self._getParam("iu_op_mode")
+        self.power = False if self._getParam("iu_onoff") == "0" else True
+        self.room_temperature = (float(self._getParam("iu_indoor_tmp"))/100.0 - 32.0) * 5.0 / 9.0 # converting fahrenheit to celsius
+        self.target_temperature = float(self._getParam("iu_set_tmp")) / 10
+
+    async def update(self):
+        rslt = await self.account.getDeviceState(self.serial)
         if rslt == None:
             return
-        
-        self.account.updateAuthDataIfNeeded(rslt)
+
+        self.device_data["parameters"] = rslt["parameters"]
+        self._updateParamFields()
 
     async def set(self, set_dict):
+        _LOGGER.warn(f'called to set {json.dumps(set_dict)}')
         params = []
         if "power" in set_dict:
             params.append({"name": "iu_onoff", "desiredValue": "1" if set_dict["power"] else "0"})
@@ -102,9 +120,10 @@ class AirstageAC():
         if "operation_mode" in set_dict:
             params.append({"name":"iu_op_mode", "desiredValue": set_dict['operation_mode']})
 
-        rslt = self.account.changeDeviceState(self.serial, params)
+        rslt = await self.account.changeDeviceState(self.serial, params)
         
         if rslt == None:
             raise Exception(f'Cannot set state {set_dict} to device {self.serial}')
 
         self.account.updateAuthDataIfNeeded(rslt)
+        await self.update()
