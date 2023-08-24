@@ -5,8 +5,6 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 
-# header authority: "https://bke.euro.airstagelight.com/apiv1" -> "bke.euro.airstagelight.com"
-
 def _getStatus(resp):
     try:
         return resp.status_code
@@ -27,20 +25,8 @@ async def login(baseUrl, email, password, country, language, *, requestModule=re
     deviceToken = "xxxxxxxxxxxxxxxxxxxxxx:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-xxxxxxxxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_xxxxxxxxxxxxxxxxxxxxxxxx"
     ssid = str(uuid.uuid4()).replace("-","")
 
-    # authority = baseUrl.split("//")[1].split("/")[0] 
     theHeader = _getPostMethodHeader(baseUrl, {"accessToken": "undefined"})
-    # {
-    #     "authority": authority,
-    #     "accept": ": application/json, text/plain, */*",
-    #     'authorization': 'Bearer undefined',
-    #     'user-agent': 'Mozilla/5.0 (Linux; Android 11; Android SDK built for x86 Build/RSR1.210210.001.A1; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/83.0.4103.106 Mobile Safari/537.36',
-    #     'content-type': 'application/json',
-    #     'x-requested-with': 'com.fujitsu_general.ACL_O_App',
-    #     'sec-fetch-site': 'cross-site',
-    #     'sec-fetch-mode': 'cors',
-    #     'sec-fetch-dest': 'empty',
-    #     'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7'
-    # }
+   
     theData = {"user": {
                 "email": email,
                 "password": password,
@@ -79,6 +65,7 @@ async def refreshToken(baseUrl, authData, *, requestModule=requests):
 
 
 def _getGetMethodHeader(baseUrl, authData):
+    # header authority: "https://bke.euro.airstagelight.com/apiv1" -> "bke.euro.airstagelight.com"
     authority = baseUrl.split("//")[1].split("/")[0]
 
     return {
@@ -156,7 +143,10 @@ async def stateChange(baseUrl, authData, deviceId, parameterChange, *, requestMo
 
     status = _getStatus(req)
     if status != 200:
-        # TODO implement refresh token mechanism here
+        if not freshToken:
+            secondTryFunc=lambda ad: stateChange(baseUrl, ad, deviceId, parameterChange, requestModule=requestModule, freshToken=True)
+            return await tryRefreshed(baseUrl, authData, requestModule=requestModule, tryFunc=secondTryFunc)
+
         _LOGGER.error(f'Device status change failed: {status}\nHeader: {req.headers}\nContent: {str(_getContent(req))}')
         return None
     

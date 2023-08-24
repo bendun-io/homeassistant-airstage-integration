@@ -67,7 +67,7 @@ class AirstageAC():
         self.account = account
 
         self.device_data = deviceinfo
-        self.name = deviceinfo["deviceName"]    # this one may not be needed as it is configurable TODO CHECK
+        self.name = deviceinfo["deviceName"]
         self.serial = deviceinfo["deviceId"]
         self.mac = None # deviceinfo.mac        # TODO see if it is needed
         self.device_info = f'The Fujitsu AC with serial number {self.serial}'

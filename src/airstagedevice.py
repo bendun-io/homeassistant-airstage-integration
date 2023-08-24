@@ -13,12 +13,11 @@ const = {
 }
 
 
-from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
+# from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.entity import DeviceInfo
 from .const import DOMAIN, MIN_TIME_BETWEEN_UPDATES
 from homeassistant.util import Throttle
 from aiohttp import ClientConnectionError
-from async_timeout import timeout
 from typing import Any
 
 
@@ -60,11 +59,6 @@ class AirstageDevice:
         """Return device ID."""
         return self.device.device_id
 
-    # @property # TODO check if this one is needed
-    # def building_id(self):
-    #     """Return building ID of the device."""
-    #     return self.device.building_id
-
     @property
     def device_info(self) -> DeviceInfo:
         """Return a device description for device registry."""
@@ -77,8 +71,3 @@ class AirstageDevice:
             sw_version=self.device.sw_version,
             name=self.name,
         )
-
-    # @property # TODO check if this one is actually needed
-    # def daily_energy_consumed(self) -> float | None:
-    #     """Return energy consumed during the current day in kWh."""
-    #     return self.device.daily_energy_consumed
